@@ -1,0 +1,192 @@
+doctype html
+html(lang='en')
+
+  head
+    meta(charset='UTF-8')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css')
+    link(rel='stylesheet', href='/styles.css')
+    title Artworks
+
+  body 
+    .topmenu
+      a(href='/') Home
+      a.active(href='/artworks') Artworks
+      a.username(href='/userget') #{username.toUpperCase()}
+
+  style.
+    div {
+      margin: 5px;
+    }
+    label {
+      font-weight: bold;
+      display: inline-block;
+      width: 20%;
+    }
+    input {
+      color: blue;
+      padding: 5px 10px;
+      width: 80%;
+    }
+    button {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .red {
+      background-color: red;
+      color: white
+    }
+    .green {
+      background-color: green;
+      color: white
+    }
+    .blue {
+      background-color: blue;
+      color: white
+    }
+    .hideId {
+      display: none;
+    }
+    .disabled {
+      color: gray;
+      width: 200px;
+    }
+    .enabled {
+      color: blue;
+      width: 200px;
+    }
+    .left {
+      width: 99%;
+    }
+    .right {
+      width: 100%;
+    }
+    .grid-container {
+      display: grid;
+      margin-top: 10px;
+      grid-template-columns: auto auto auto;
+      background-color: #b2cade;
+      padding: 5px;
+    }
+    .grid-item {
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      font-size: 16px;
+      text-align: center;
+    }    
+
+  div.grid-container
+
+    div.grid-item.left
+
+      label(for='Name') Name:
+      input(type='text' id='Name' value='')
+
+      label(for='Artist') Artist:
+      input(type='text' id='Artist' value='')
+
+      label(for='Category') Category:
+      input(type='text' id='Category' value='')
+
+      label(for='Medium') Medium:
+      input(type='text' id='Medium' value='')
+
+      button.green(id="Find" onclick="findArtWorks()") Find
+      button.blue(id="Clear" onclick="clearInputs()") Clear
+
+    div.grid-item.right
+      h2 Total Items: #{items.length} 
+      button.red(onclick="resetDatabase()") Reset Database
+
+  #Result
+
+    table.ui.celled.table.center.aligned
+      thead
+      tr
+        th Id
+        th Name
+        th Artist
+        th Year
+        th Category
+        th Medium
+        th Description
+        th Likes
+        th Image
+      tbody
+        each item in items
+          tr
+          td 
+            a(href=`/artworks/${item._id}`) #{item._id}
+          td #{item.Name}
+          td 
+            a(href=`/artists/${item.Artist}`) #{item.Artist}
+          td #{item.Year}
+          td #{item.Category}
+          td #{item.Medium}
+          td #{item.Description}
+          td #{item.Likes.length}
+          td 
+            img(src=`${item.Image}` width="100" height="100")
+
+script.
+
+  document.getElementById("Name").addEventListener("keyup", function(event) { pressEnter() });
+  document.getElementById("Artist").addEventListener("keyup", function(event) { pressEnter() });
+  document.getElementById("Category").addEventListener("keyup", function(event) { pressEnter() });
+  document.getElementById("Medium").addEventListener("keyup", function(event) { pressEnter() });
+
+  function pressEnter() {
+    event.preventDefault();
+    if (event.keyCode === 13) document.getElementById("Find").click();
+  }
+
+  async function resetDatabase() {
+      const result = confirm('CONFIRM ==> Are You Sure You Want to RESET?');
+      if (result) {
+        const headers = { 'Content-Type': 'application/json' };
+        const result = await fetch('http://localhost:4000/resetdb', { method: "POST", headers });
+        const data = await result.json();
+        console.log(data);
+        if (result.status == 200) {
+          location.reload();
+        } 
+        else {
+              alert(`ERROR ==> ${data}`);
+            }    
+      }
+  }
+
+  async function findArtWorks() {
+
+      const Name = document.getElementById('Name').value.trim();
+      const Artist = document.getElementById('Artist').value.trim();
+      const Medium = document.getElementById('Medium').value.trim();
+      const Category = document.getElementById('Category').value.trim();
+
+      const filter = { 
+        Name: Name,
+        Artist: Artist,
+        Medium: Medium,
+        Category: Category, 
+        };
+
+      const filterJson = (Name == '' && Artist == '' && Medium == '' && Category == '') ? null : JSON.stringify(filter); 
+
+      console.log(filter);
+      console.log(filterJson);
+
+      const headers = { 'Content-Type': 'application/json' };
+      const resultApi = await fetch('http://localhost:4000/artworks/find', { method: "POST", body:filterJson, headers });
+      const resultHtml = await resultApi.text();
+      const startIndex  = resultHtml.indexOf('<div id="Result">');
+      document.getElementById('Result').innerHTML = resultHtml.substring(startIndex);
+  }
+
+  function clearInputs() {
+      document.getElementById('Name').value = '';
+      document.getElementById('Artist').value = '';
+      document.getElementById('Category').value = '';
+      document.getElementById('Medium').value = '';
+      document.getElementById('Name').focus();
+      document.getElementById('Result').innerHTML = null;
+  }

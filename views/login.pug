@@ -1,0 +1,164 @@
+doctype html
+html(lang='en')
+
+  head
+    meta(charset='UTF-8')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css')
+    link(rel='stylesheet', href='/styles.css')
+    title Login
+
+  style.
+    div {
+      margin: 5px;
+    }
+    label {
+      font-size: 16px;
+      font-weight: bold;
+      display: inline-block;
+      width: 100%;
+    }
+    input {
+      color: blue;
+      padding: 5px 10px;
+      width: 100%;
+    }
+    button {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .red {
+      background-color: red;
+      color: white
+    }
+    .green {
+      background-color: green;
+      color: white
+    }
+    .blue {
+      background-color: blue;
+      color: white
+    }
+    .hideId {
+      display: none;
+    }
+    .disabled {
+      color: gray;
+      width: 200px;
+    }
+    .enabled {
+      color: blue;
+      width: 200px;
+    }
+    .left {
+      width: 99%;
+    }
+    .right {
+      width: 100%;
+    }
+    .container {
+     margin-top: 50px;
+     padding: 30px;
+     width: 500px;
+    }
+
+  h1(style='color: blue;') [ Assignment #5 ]
+
+  div.container
+    label(for="Username") Username:
+    input(type="text" id="Username")
+                
+    label(for="Password") Password:
+    input(type="password" id="Password")
+
+    button.green(id="Login" onclick="login()") Login
+    button.red(id="Create" onclick="create()") Create
+    button.blue(id="Clear" onclick="clearInputs()") Clear
+
+script.
+
+  document.getElementById("Username").addEventListener("keyup", function(event) { pressEnter() });
+  document.getElementById("Password").addEventListener("keyup", function(event) { pressEnter() });
+
+  function pressEnter() {
+    event.preventDefault();
+    if (event.keyCode === 13) document.getElementById("Login").click();
+  }
+
+  async function login() {
+
+    const Username = document.getElementById('Username').value;
+    const Password = document.getElementById('Password').value;
+
+    if (Username.trim() == '') {
+        return alert("ERROR ==> Username Can Not Be Empty !");
+    }
+
+    if (Password.trim() == '') {
+        return alert("ERROR ==> Password Can Not Be Empty !");
+    }
+
+    const item = {
+      Username: Username,
+      Password: Password
+    }
+
+    const itemJSON = JSON.stringify(item); 
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch('http://localhost:4000/userlogin', { method: "POST", body: itemJSON, headers });
+    const data = await result.json();
+
+    console.log(result);
+    console.log(data);
+
+    if (result.status == 200) {
+      sessionStorage.setItem("username", Username);
+      window.location.replace('http://localhost:4000');
+    }  
+    else {
+      alert("ERROR ==> Invalid Username or Password !");
+    }    
+  }
+
+  async function create() {
+
+    const Username = document.getElementById('Username').value;
+    const Password = document.getElementById('Password').value;
+
+    if (Username.trim() == '') {
+        return alert("ERROR ==> Username Can Not Be Empty !");
+    }
+
+    if (Password.trim() == '') {
+        return alert("ERROR ==> Password Can Not Be Empty !");
+    }
+
+    const item = {
+      Username: Username,
+      Usertype: 'patron',
+      Password: Password,
+      Follows: [],
+      Likes: [],
+    }
+
+    const itemJSON = JSON.stringify(item); 
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch('http://localhost:4000/usercreate', { method: "POST", body: itemJSON, headers });
+    const data = await result.json();
+
+    console.log(result);
+    console.log(data);
+
+    if (result.status == 200) {
+      alert("INFO ==> New User Successfully Created !");
+    }  
+    else {
+      alert("ERROR ==> New User Creation Failed !");
+    }    
+  }
+
+  function clearInputs() {
+    console.log("clear")
+      document.getElementById('Username').value = '';
+      document.getElementById('Password').value = '';
+      document.getElementById('Username').focus();
+  } 

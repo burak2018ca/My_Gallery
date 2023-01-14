@@ -1,0 +1,142 @@
+doctype html
+html(lang='en')
+
+  head
+    meta(charset='UTF-8')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css')
+    link(rel='stylesheet', href='/styles.css')
+    title Artist
+
+  body 
+    .topmenu
+      a(href='/') Home
+      a(href='/artworks') Artworks
+      a.active() Artist
+      a.username(href='/userget') #{username.toUpperCase()}
+
+  style.
+    div {
+      margin: 5px;
+    }
+    label {
+      font-weight: bold;
+      display: inline-block;
+      width: 20%;
+    }
+    input {
+      color: blue;
+      padding: 5px 10px;
+      width: 80%;
+    }
+    button {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .red {
+      background-color: red;
+      color: white;
+    }
+    .brown {
+      background-color: brown;
+      color: white
+    }    
+    .green {
+      background-color: green;
+      color: white;
+    }
+    .blue {
+      background-color: blue;
+      color: white;
+    }
+    .hideId {
+      display: none;
+    }
+    .disabled {
+      color: gray;
+      width: 200px;
+    }
+    .enabled {
+      color: blue;
+      width: 200px;
+    }
+    .left {
+      width: 99%;
+    }
+    .right {
+      width: 100%;
+    }
+    .grid-container {
+      display: grid;
+      margin-top: 10px;
+      grid-template-columns: auto auto auto;
+      background-color: #b2cade;
+      padding: 5px;
+    }
+    .grid-item {
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      font-size: 16px;
+      text-align: center;
+    }    
+
+  #Result
+
+    h2 #{artist} 
+
+    table.ui.celled.table.center.aligned
+      thead
+      tr
+        th Id
+        th Name
+        th Artist
+        th Year
+        th Category
+        th Medium
+        th Description
+        th Likes
+        th Image
+      tbody
+        each item in items
+          tr
+          td 
+            a(href=`/artworks/${item._id}`) #{item._id}
+          td #{item.Name}
+          td #{item.Artist}
+          td #{item.Year}
+          td #{item.Category}
+          td #{item.Medium}
+          td #{item.Description}
+          td #{item.Likes.length}
+          td 
+            img(src=`${item.Image}` width="100" height="100")
+
+  div 
+    button.green(onclick=`follow('${artist}')`) Follow
+    button.brown(onclick=`unfollow('${artist}')`) Unfollow
+    button.blue(onclick="history.back()") Back  
+
+script.
+
+  window.addEventListener( "pageshow", function (event) {
+    var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+    if (historyTraversal) { findArtWorks(); }
+  });
+
+  async function follow(artist) {
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userfollow/${artist}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    result.status == 200 ? alert(`INFO ==> ( ${artist} ) Added into Your FOLLOWS !`) : alert(`ERROR ==> ( ${artist} ) Could Not Add into Your FOLLOWS !`);
+  }
+
+  async function unfollow(artist) {
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userunfollow/${artist}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    result.status == 200 ? alert(`INFO ==> ( ${artist} ) Removed From Your FOLLOWS !`) : alert(`ERROR ==> ( ${artist} ) Could Not Removed From Your FOLLOWS !`);
+  }

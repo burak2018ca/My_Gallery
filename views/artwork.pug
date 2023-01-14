@@ -1,0 +1,240 @@
+doctype html
+html(lang='en')
+
+  head
+    meta(charset='UTF-8')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css')
+    link(rel='stylesheet', href='/styles.css')
+    title Artwork
+
+  body 
+    .topmenu
+      a(href='/') Home
+      a.active(href='/artworks') Artworks
+      a.username(href='/userget') #{username.toUpperCase()}
+
+  style.
+    div {
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+      display: inline-block;
+      width: 110px;
+    }
+    input {
+      color: blue;
+      padding: 5px 10px;
+      width: 100%;
+    }
+    button {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .red {
+      background-color: red;
+      color: white
+    }
+    .brown {
+      background-color: brown;
+      color: white
+    }
+    .green {
+      background-color: green;
+      color: white
+    }
+    .blue {
+      background-color: blue;
+      color: white
+    }
+    .hideId {
+      display: none;
+    }
+    .disabled {
+      color: gray;
+      width: 200px;
+    }
+    .enabled {
+      color: blue;
+      width: 200px;
+    }
+
+
+  div.hideId
+    label(for='Id') Id:
+    input(type='text' id='Id' value=`${item._id}`)
+
+  div
+    label(for='Name') Name:
+    input(type='text' id='Name' value=`${item.Name}`)
+  
+  div
+    label(for='Artist') Artist:
+    input(type='text' id='Artist' value=`${item.Artist}`)
+
+  div
+    label(for='Year') Year:
+    input(type='text' id='Year' value=`${item.Year}`)
+
+  div
+    label(for='Category') Category:
+    input(type='text' id='Category' value=`${item.Category}`)
+
+  div
+    label(for='Medium') Medium:
+    input(type='text' id='Medium' value=`${item.Medium}`)
+
+  div
+    label(for='Description') Description:
+    input(type='text' id='Description' value=`${item.Description}`)
+
+  div
+    label(for='Image') Image:
+    input(type='text' id='Image' value=`${item.Image}`)
+
+  div 
+    button.green(onclick="addItem()") Add
+    button.green(onclick="updateItem()") Update
+    button.green(onclick="likeItem()") Like
+    button.brown(onclick="unlikeItem()") Unlike
+    button.red(onclick="deleteItem()") Delete
+    button.blue(onclick="history.back()") Back  
+
+script.
+
+  async function updateItem() {
+
+      const Id = document.getElementById('Id').value;
+      const Name = document.getElementById('Name').value;
+      const Artist = document.getElementById('Artist').value;
+      const Year = document.getElementById('Year').value;
+      const Category = document.getElementById('Category').value;
+      const Medium = document.getElementById('Medium').value;
+      const Description = document.getElementById('Description').value;
+      const Image = document.getElementById('Image').value;
+
+      const regexYear = new RegExp(/^[12][0-9]{3}$/);
+      const regexUrl = new RegExp(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+
+      if (!regexYear.test(Year)) {
+        return alert("ERROR ==> YEAR must be Integer value between 1000-2999 !");
+      }
+
+      if (!regexUrl.test(Image)) {
+        return alert("ERROR ==> IMAGE_URL must be valid URL !");
+      }
+
+      const item = { 
+        _id: Id,
+        Name: Name,
+        Artist: Artist,
+        Year: parseInt(Year),
+        Category: Category,
+        Medium: Medium,
+        Description: Description,
+        Image: Image,
+        Likes:[],
+      };      
+
+      const itemJSON = JSON.stringify(item); 
+      const headers = { 'Content-Type': 'application/json' };
+      const result = await fetch(`http://localhost:4000/artworks`, { method: "PUT", body: itemJSON, headers });
+      const data = await result.json();
+      console.log(result);
+      console.log(data);
+      if (result.status == 200) {
+        alert("INFO ==> Item Successfully Updated !");
+        history.back();
+      } 
+      else {
+        alert(`ERROR ==> ${data}`);
+      }         
+  }
+
+  async function addItem() {
+
+      const Id = document.getElementById('Id').value;
+      const Name = document.getElementById('Name').value;
+      const Artist = document.getElementById('Artist').value;
+      const Year = document.getElementById('Year').value;
+      const Category = document.getElementById('Category').value;
+      const Medium = document.getElementById('Medium').value;
+      const Description = document.getElementById('Description').value;
+      const Image = document.getElementById('Image').value;
+
+      const regexYear = new RegExp(/^[12][0-9]{3}$/);
+      const regexUrl = new RegExp(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/);
+
+      if (!regexYear.test(Year)) {
+        return alert("ERROR ==> YEAR must be Integer value between 1000-2999 !");
+      }
+
+      if (!regexUrl.test(Image)) {
+        return alert("ERROR ==> IMAGE_URL must be valid URL !");
+      }
+
+      const item = { 
+        Name: Name,
+        Artist: Artist,
+        Year: parseInt(Year),
+        Category: Category,
+        Medium: Medium,
+        Description: Description,
+        Image: Image,
+        Likes: [],
+      };      
+
+      const itemJSON = JSON.stringify(item); 
+      const headers = { 'Content-Type': 'application/json' };
+      const result = await fetch(`http://localhost:4000/artworks`, { method: "POST", body: itemJSON, headers });
+      const data = await result.json();
+
+      console.log(data);
+
+      if (result.status == 200) {
+        alert("INFO ==> Item Successfully Inserted !");
+        history.back();
+      }  
+      else {
+        alert(`ERROR ==> ${data}`);
+      }    
+  }
+
+  async function likeItem(){
+    const artworkId = document.getElementById('Id').value;
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userlike/${artworkId}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    result.status == 200 ? alert(`INFO ==> ( ${artworkId} ) Added into Your LIKES !`) : alert(`ERROR ==> ( ${artworkId} ) Could Not Add into Your LIKES !`);
+  }
+
+  async function unlikeItem(){
+    const artworkId = document.getElementById('Id').value;
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userunlike/${artworkId}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    result.status == 200 ? alert(`INFO ==> ( ${artworkId} ) Removed From Your LIKES !`) : alert(`ERROR ==> ( ${artworkId} ) Could Not Removed From Your LIKES !`);
+  }
+
+  async function deleteItem() {
+      const Id = document.getElementById('Id').value;
+      const result = confirm(`Are You Sure You Want to Delete This Item? \n\n DELETE ==> (${Id})`);
+      if (result) {
+            const headers = { 'Content-Type': 'application/json' };
+            const result = await fetch(`http://localhost:4000/artworks/${Id}`, { method: "DELETE", headers });
+            const data = await result.json();
+            console.log(result);
+            console.log(data);
+            if (result.status == 200) {
+              alert("Item Successfully Deleted !");
+              history.back();
+            }
+            else {
+              alert(`ERROR ==> ${data}`);
+            }    
+      }
+  }

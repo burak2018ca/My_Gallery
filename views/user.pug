@@ -1,0 +1,213 @@
+doctype html
+html(lang='en')
+
+head
+  meta(charset='UTF-8')
+  link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css')
+  link(rel='stylesheet', href='/styles.css')
+  title User
+
+  body 
+    .topmenu
+      a(href='/') Home
+      a(href='/artworks') Artworks
+      a.active(href='/userget') #{user.Username.toUpperCase()}
+
+  style.
+    div {
+      margin: 5px;
+    }
+    label {
+      font-weight: bold;
+      display: inline-block;
+      width: 20%;
+    }
+    input {
+      color: blue;
+      padding: 5px 10px;
+      width: 80%;
+    }
+    button {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .red {
+      background-color: red;
+      color: white;
+    }
+    .brown {
+      background-color: brown;
+      color: white
+    }
+    .green {
+      background-color: green;
+      color: white;
+    }
+    .blue {
+      background-color: blue;
+      color: white;
+    }
+    .hideId {
+      display: none;
+    }
+    .disabled {
+      color: gray;
+    }
+    .enabled {
+      color: blue;
+      width: 200px;
+    }
+    .left {
+      width: 1000px;
+    }
+    .follows {
+      width: 300px !important;
+    }
+    .grid-container {
+      display: grid;
+      margin-top: 10px;
+      grid-template-columns: auto auto auto;
+      background-color: #b2cade;
+      padding: 5px;
+    }
+    .grid-item {
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .remove {
+      background-color: red;
+      text-align: center;
+      color: white;
+      width: 40px;
+      height: 30px;
+      padding: 0px;
+    }   
+
+  div.grid-container
+    div.grid-item.left
+
+      label(for="Username") Username:
+      input.disabled(type="text" id="Username" value=`${user.Username}` readonly)
+
+      label(for="Usertype") Usertype:
+      input(type="text" id="Usertype" value=`${user.Usertype}`)
+
+      label(for="Password") Password:
+      input(type="text" id="Password" value=`${user.Password}`)
+
+      label(for="Follows" hidden) Follows:
+      input.disabled(type="text" id="Follows" value=`${user.Follows}` readonly hidden)
+
+button.green(onclick="updateItem()") Update
+button.brown(onclick="logout()") Logout
+
+h1 Follows
+
+table.ui.celled.table.center.aligned.follows
+  thead
+    tr
+      th Artist
+      th Action
+  tbody
+    each item in user.Follows
+      tr
+      td 
+        a(href=`/artists/${item}`) #{item}
+      td 
+        button.remove(onclick=`removeFollow('${item}')`) X
+
+h1 Likes
+
+table.ui.celled.table.center.aligned.follows
+  thead
+    tr
+      th Name
+      th Action
+  tbody
+    each item in user.Likes
+      tr
+      td 
+        a(href=`/artworks/${item}`) #{item}
+      td 
+        button.remove(onclick=`removeLike('${item}')`) X
+
+script.
+
+  window.addEventListener( "pageshow", function (event) {
+    var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+    if (historyTraversal) {  
+      window.location.replace('http://localhost:4000/userget');
+    }
+  });
+
+  async function logout() {
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch('http://localhost:4000/userlogout', { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    if (result.status == 200) {
+        window.location.replace('http://localhost:4000/userlogin');
+    }  
+  }
+
+  async function updateItem() {
+
+    const Username = document.getElementById('Username').value;
+    const Usertype = document.getElementById('Usertype').value;
+    const Password = document.getElementById('Password').value;
+
+    if (Password.trim() == '') {
+        return alert("ERROR ==> Password Can Not Be Empty !");
+    }
+
+    if (['patron', 'artist'].indexOf(Usertype.trim()) < 0) {
+        return alert("ERROR ==> Usertype Must Be PATRON or ARTIST !");
+    }
+
+    const item = {
+      Username: Username,
+      Usertype: Usertype,
+      Password: Password,
+    }
+
+    const itemJSON = JSON.stringify(item); 
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch('http://localhost:4000/userupdate', { method: "POST", body: itemJSON, headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    if (result.status == 200) {
+      alert("INFO ==> User Successfully Updated !");
+    }  
+    else {
+      alert("ERROR ==> User Update Failed !");
+    }    
+  }
+
+  async function removeFollow(artist) {
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userunfollow/${artist}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    if (result.status == 200) {
+      alert(`INFO ==> ( ${artist} ) Removed From Your FOLLOWS !`)
+      window.location.replace('http://localhost:4000/userget');
+    }
+  }
+
+  async function removeLike(artworkId) {
+    const headers = { 'Content-Type': 'application/json' };
+    const result = await fetch(`http://localhost:4000/userunlike/${artworkId}`, { method: "POST", headers });
+    const data = await result.json();
+    console.log(result);
+    console.log(data);
+    if (result.status == 200) {
+      alert(`INFO ==> ( ${artworkId} ) Removed From Your LIKES!`);
+      window.location.replace('http://localhost:4000/userget');
+    } 
+  }
